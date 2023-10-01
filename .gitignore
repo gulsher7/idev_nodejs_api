@@ -4,8 +4,8 @@
 
 # node.js
 #
-node_modules/
-uploads/
+node_modules
+uploads
 npm-debug.log
 yarn-error.log
 
