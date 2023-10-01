@@ -14,7 +14,7 @@ require('./src/config/database');
 const my_routes = require('./src/routes');
 
 app.get('/', (req, res) => {
-  res.send('Hello, Express!');
+  res.send('Hello, Express');
 });
 
 app.use('/', my_routes)
