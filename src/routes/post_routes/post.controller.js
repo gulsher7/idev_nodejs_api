@@ -5,11 +5,10 @@ const base_url = "http://localhost:3000/"
 const createPost = async (req, res) => {
     try {
         const files = req.files
-
         const media = files.map((val, i) => {
             return {
                 type: val.mimetype == "video/mp4" ? "video" : "image",
-                url: base_url + val.filename
+                url: val.location
             }
         })
         req.body.media = media
@@ -17,6 +16,35 @@ const createPost = async (req, res) => {
         const result = await PostModel.create(req.body)
         res.send({
             data: result,
+            status: true
+        })
+    } catch (error) {
+        res.status(403).json({ status: false, error: error })
+    }
+}
+
+const fileUpload = async (req, res) => {
+
+    console.log("req files", req.file)
+
+    if (!req?.file) {
+        res.status(403).json({ status: false, error: "please upload a file" })
+        return;
+    }
+
+    console.log("req?.file", req?.file)
+
+    let data = {}
+
+    if (!!req?.file) {
+        data = {
+            url: req.file.location,
+            type: req.file.mimetype
+        }
+    }
+    try {
+        res.send({
+            data: data,
             status: true
         })
     } catch (error) {
@@ -32,71 +60,92 @@ const allPosts = async (req, res) => {
     const userId = req.query.userId
 
     const totalPosts = await PostModel.countDocuments({})
-    console.log("totalPosts",totalPosts)
+    console.log("totalPosts", totalPosts)
 
-    const totalPages = Math.ceil(totalPosts/limit)
+    const totalPages = Math.ceil(totalPosts / limit)
     const startIndex = (page - 1) * limit
 
-        try {
-            const result = await PostModel.aggregate([
-                {
-                    $lookup: {
-                        from:"likes",
-                        let: {postId: "$_id"},
-                        pipeline: [
-                            {
+    try {
+        const result = await PostModel.aggregate([
+            {
+                $lookup: {
+                    from: "likes",
+                    let: { postId: "$_id" },
+                    pipeline: [
+                        {
                             $match: {
                                 $expr: {
                                     $and: [
-                                        {$eq: ['$postId', '$$postId']},
-                                        {$eq: ['$userId', new mongoose.Types.ObjectId(userId) ]}
+                                        { $eq: ['$postId', '$$postId'] },
+                                        { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] }
                                     ]
                                 },
                             },
-                            },
-                        ],
-                        as: 'likes'
-                    },
+                        },
+                    ],
+                    as: 'likes'
                 },
-                {
-                    $addFields: {
-                        isLike: {
-                            $cond: {
-                                if: { $gt: [{ $size: '$likes' }, 0] }, 
-                                then: true,
-                                else: false
-                            }
+            },
+            {
+                $addFields: {
+                    isLike: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$likes' }, 0] },
+                            then: true,
+                            else: false
                         }
                     }
+                }
+            },
+
+            {
+                $lookup: {
+                    from: "users", // Replace with the actual collection name for user data
+                    localField: "userId", // Assuming "userId" is the field in PostModel that links to users
+                    foreignField: "_id", // Assuming user documents have "_id" field
+                    as: "user"
                 },
-               {
-                $project: {likes: 0}
-               },
-                {
-                    $skip: startIndex,
-                },
-                {
-                    $limit: limit,
-                },
-                {
-                    $sort: {createdAt: -1},
-                },
-            ])
-            res.send({
-                data: result,
-                status: true,
-                totalPages: totalPages,
-                page: page
-            })
-        } catch (error) {
-            console.log("errorerror",error)
-            res.status(403).json({status: false, error:error })
-        }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $project: {
+                    likes: 0,
+                    "user.password": 0,
+                    "user.token": 0,
+                    "user.isDeleted": 0,
+                    "user.links": 0,
+                    "user.deviceType": 0,
+                    "user.fcmToken": 0
+                }
+            },
+            {
+                $skip: startIndex,
+            },
+            {
+                $limit: limit,
+            },
+            {
+                $sort: { createdAt: -1 },
+            },
+        ])
+        res.send({
+            data: result,
+            status: true,
+            totalPages: totalPages,
+            page: page
+        })
+    } catch (error) {
+        console.log("errorerror", error)
+        res.status(403).json({ status: false, error: error })
+    }
 }
 
 
 
 module.exports = {
     createPost,
-    allPosts
+    allPosts,
+    fileUpload
 }

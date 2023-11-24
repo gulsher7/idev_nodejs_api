@@ -47,7 +47,11 @@ const deleteComment = async (req, res) => {
 }
 
 const postComments = async(req, res) =>{
-    const {postId, page, limit} = req.query
+
+    const limit = parseInt(req.query.limit) || 10
+    const page = parseInt(req.query.page) || 1
+    const postId = req.query.postId
+
 
     const totalComments = await CommentModel.countDocuments({postId})
     console.log("totalComments",totalComments)

@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const {ObjectId} = mongoose.Schema.Types
 
 const mediaSchema = new mongoose.Schema({
-    type: {type: String, enum: ['image', 'video'], required: false}
+    type: {type: String, enum: ['image', 'video'], required: false},
+    url: {type: String, required: true}
 })
 
 const postSchema = new mongoose.Schema({

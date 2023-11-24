@@ -10,10 +10,17 @@ const createUser = async(req, res) =>{
             if(!checkUser){
                 const salt = await bcrypt.genSalt()
                 const passowrdHash = await bcrypt.hash(password, salt)
+
+
+
                 let result = await UserModel.create({
                     ...req.body,
-                    password: passowrdHash
+                    password: passowrdHash,
                 })
+
+                const token = jwt.sign({user_id: result?._id, email }, process.env.TOKEN_KEY);
+                result.token = token
+
                 res.send({
                     data: result,
                     message:"User created succesfully...!!!",
@@ -24,6 +31,7 @@ const createUser = async(req, res) =>{
             }
 
     } catch (error) {
+        console.log("error raised",error)
         res.status(403).json({status: false, error:error })
     }
 }
@@ -37,9 +45,13 @@ const loginUser = async(req, res) =>{
                let isPasswordValid = await bcrypt.compare(password, result.password) 
                 if(!!isPasswordValid){
                 const token = jwt.sign({user_id: result?._id, email }, process.env.TOKEN_KEY);
-                    result.token = token
+
+                    const deepCopy = JSON.parse(JSON.stringify(result))
+                    deepCopy.token = token
+                    delete deepCopy.password
+        
                     res.send({
-                        data: result,
+                        data: deepCopy,
                         status: true
                     })
                 }else{
@@ -54,7 +66,31 @@ const loginUser = async(req, res) =>{
         }
 }
 
+
+const otpVerify = async(req, res) =>{
+    const {email, otp} = req.body
+        if(otp === '1234'){
+            try {
+                const result = await UserModel.findOneAndUpdate({email: email} ,{$set: {validOTP: true}}, {new: true}).select('-password')
+                if(!!result){
+                    res.send({
+                        data: result,
+                        status: true
+                    })
+                }else{
+                    res.status(403).json({status: false, error:"User not found" })
+                }
+              
+            } catch (error) {
+                res.status(403).json({status: false, error:error })
+            }
+        }else{
+            res.status(403).json({status: false, error:"Otp not valid" })
+        }
+}
+
 module.exports = {
     createUser,
-    loginUser
+    loginUser,
+    otpVerify
 }
