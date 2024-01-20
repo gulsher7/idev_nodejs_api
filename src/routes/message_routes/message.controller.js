@@ -4,28 +4,20 @@ const ChatModel = require('../../models/chat');
 
 
 const sendMessage = async (req, res) => {
-    const { chatId, text,recevierId } = req.body
+    const { chatId, text } = req.body
     try {
         const newMessage = await MessageModel.create({
             text,
             chatId,
             user: req.user.user_id
         })
-        let chatUpdate = await ChatModel.findByIdAndUpdate(chatId, {
+        await ChatModel.findByIdAndUpdate(chatId, {
             latestMessage: text
         }, {
             new: true
-        }).populate(
-            {
-                path: "users",
-                select: "userName",
-                match:{_id: {$ne: recevierId }},
-            })
-
-        console.log("chatUpdatechatUpdate", chatUpdate)
+        })
         res.send({
             data: newMessage,
-            upatedRoom: chatUpdate,
             status: true,
 
         })
@@ -40,7 +32,7 @@ const myMessages = async (req, res) => {
 
     const page = parseInt(req.query.pag3) || 1
     const limit = parseInt(req.query.limit) || 10
-    const skip = (page - 1) * limit
+    const skip = (page - 1) * limit 
 
 
     try {
@@ -48,8 +40,8 @@ const myMessages = async (req, res) => {
             chatId: chatId
         }).populate({
             path: "user",
-            select: "userName"
-        }).sort({ createdAt: -1 }).skip(skip).limit(limit)
+            select:"userName"
+        }).sort({createdAt: -1}).skip(skip).limit(limit)
         res.send({
             data: messages,
             status: true,

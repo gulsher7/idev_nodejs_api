@@ -82,8 +82,6 @@ const myChats = async (req, res) => {
             path: "users",
             select:"userName",
             match:{_id: {$ne: req.user.user_id }},
-        }).sort({
-        updatedAt : -1
         })
         res.send({
             data: chats,
