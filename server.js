@@ -18,7 +18,7 @@ const io = new Server(server, {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-require('./src/config/database');
+require('./src/confiidg/database');
 const my_routes = require('./src/routes');
 
 app.get('/', (req, res) => {
@@ -38,6 +38,16 @@ io.on('connection', (socket) => {
   });
 
 
+  socket.on("leave_chat", (userId) => {
+    socket.leave(userId);
+    console.log(`User ${socket.id} left room ${userId}`);
+  });
+
+  socket.on("join_chat", (userId)=>{
+    socket.join(userId)
+    console.log(`User ${socket.id} joined chat room ${userId}`)
+  })
+
   socket.on("join_room", (chatId)=>{
     socket.join(chatId)
     console.log(`User ${socket.id} joined chat room ${chatId}`)
@@ -45,6 +55,7 @@ io.on('connection', (socket) => {
 
   socket.on('send_message',(data)=>{
     io.to(data.chatId).emit("send_message",data)
+    io.to(data.userId).emit('new_chat',data.upatedRoom)
   })
 
   socket.on('disconnect', ()=>{
