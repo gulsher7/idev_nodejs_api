@@ -1,6 +1,5 @@
 const { default: mongoose } = require('mongoose');
 const PostModel = require('../../models/post');
-const base_url = "http://localhost:3000/"
 
 const createPost = async (req, res) => {
     try {
@@ -143,9 +142,40 @@ const allPosts = async (req, res) => {
 }
 
 
+const myPosts = async(req, res) =>{
+
+    const limit = parseInt(req.query.limit) || 10
+    const page = parseInt(req.query.page) || 1
+    const userId = req.query.userId
+
+
+    const totalPots = await PostModel.countDocuments({userId})
+
+    console.log("totalPots",totalPots)
+
+    const totalPages = Math.ceil(totalPots/limit)
+    const startIndex = (page - 1) * limit
+        try {
+            const result = await PostModel.find({userId}).populate({path:"userId", select:"userName fullName"}).skip(startIndex).limit(limit).exec()
+            res.send({
+                data: result,
+                status: true,
+                currentPage: page,
+                totalPages: totalPages
+            })
+        } catch (error) {
+            res.status(403).json({status: false, error:error })
+        }
+}
+
+
+
+
 
 module.exports = {
     createPost,
     allPosts,
-    fileUpload
+    fileUpload,
+    myPosts
+    
 }
