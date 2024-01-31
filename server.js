@@ -8,6 +8,7 @@ const app = express();
 const port = 3000;
 const http = require('http')
 const server = http.createServer(app)
+const chatSocket = require('./src/socekts/chatSocket')
 
 const io = new Server(server, {
   cors: {
@@ -26,27 +27,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/', my_routes)
-
-
-io.on('connection', (socket) => {
-  console.log('a user connected',socket.id);
-
-
-  
-  socket.on("join_room", (chatId)=>{
-    socket.join(chatId)
-    console.log(`User ${socket.id} joined chat room ${chatId}`)
-  })
-
-  socket.on('send_message',(data)=>{
-    io.to(data.chatId).emit("send_message",data)
-  })
-
-  socket.on('disconnect', ()=>{
-    console.log("user disconnect")
-  })
-
-});
+chatSocket(io)
 
 
 server.listen(port, () => {

@@ -4,20 +4,27 @@ const ChatModel = require('../../models/chat');
 
 
 const sendMessage = async (req, res) => {
-    const { chatId, text } = req.body
+    const { chatId, text,receiverId } = req.body
     try {
         const newMessage = await MessageModel.create({
             text,
             chatId,
             user: req.user.user_id
         })
-        await ChatModel.findByIdAndUpdate(chatId, {
+        const chatUpdate = await ChatModel.findByIdAndUpdate(chatId, {
             latestMessage: text
         }, {
             new: true
+        }).populate({
+            path:"users",
+            select:"userName",
+            match: {_id: {$ne: receiverId }}
         })
+
+        console.log("chatUpdatechatUpdate",chatUpdate)
         res.send({
             data: newMessage,
+            roomData: chatUpdate,
             status: true,
 
         })

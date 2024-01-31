@@ -11,7 +11,7 @@ const createPost = async (req, res) => {
             }
         })
         req.body.media = media
-        console.log(req.body)
+        // console.log(req.body)
         const result = await PostModel.create(req.body)
         res.send({
             data: result,
@@ -24,14 +24,14 @@ const createPost = async (req, res) => {
 
 const fileUpload = async (req, res) => {
 
-    console.log("req files", req.file)
+    // console.log("req files", req.file)
 
     if (!req?.file) {
         res.status(403).json({ status: false, error: "please upload a file" })
         return;
     }
 
-    console.log("req?.file", req?.file)
+    // console.log("req?.file", req?.file)
 
     let data = {}
 
@@ -52,14 +52,14 @@ const fileUpload = async (req, res) => {
 }
 
 const allPosts = async (req, res) => {
-    console.log("all post", req.query)
+    // console.log("all post", req.query)
 
     const limit = parseInt(req.query.limit) || 10
     const page = parseInt(req.query.page) || 1
     const userId = req.query.userId
 
     const totalPosts = await PostModel.countDocuments({})
-    console.log("totalPosts", totalPosts)
+    // console.log("totalPosts", totalPosts)
 
     const totalPages = Math.ceil(totalPosts / limit)
     const startIndex = (page - 1) * limit
@@ -151,7 +151,7 @@ const myPosts = async(req, res) =>{
 
     const totalPots = await PostModel.countDocuments({userId})
 
-    console.log("totalPots",totalPots)
+    // console.log("totalPots",totalPots)
 
     const totalPages = Math.ceil(totalPots/limit)
     const startIndex = (page - 1) * limit
