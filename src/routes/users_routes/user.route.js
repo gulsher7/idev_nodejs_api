@@ -10,5 +10,4 @@ router.get('/fetchUsers', user_controller.fetchAllUsers);
 router.get('/fetchUserDetails', user_controller.fetchUserDetails);
 router.get('/fetchUsersByIds', user_controller.fetchUsersByIds);
 
-
 module.exports = router
