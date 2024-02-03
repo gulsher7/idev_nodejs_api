@@ -8,7 +8,7 @@ module.exports = (io) => {
 
     socket.on("join_room", (chatId) => {
       socket.join(chatId)
-      console.log(`User ${socket.id} join chat room ${chatId}`)
+      console.log(`User ${socket.id} join room ${chatId}`)
     })
 
     socket.on("leave_room", (chatId) => {
@@ -34,40 +34,53 @@ module.exports = (io) => {
     })
 
     socket.on('send_message', (data) => {
+
+      console.log("send_message", data.userId)
       io.to(data.chatId).emit("send_message", data)
       io.to(data.userId).emit("new_chat", data.roomData)
+
+
+      // if (Array.isArray(data.userId)) {
+      //   data.userId.forEach((userId,inx) => {
+      //     io.to(userId).emit("new_chat", data.roomData);
+      //     console.log(`${userId} emit this time: ${inx}`)
+      //   });
+      // } else {
+      //   // If data.userId is not an array, emit to a single user
+      //   io.to(data.userId).emit("new_chat", data.roomData);
+      // }
     })
 
-    socket.on('user_online', async({userId})=>{
-        try {
-          const user = await UserModel.findById(userId)
-          if(user){
-            user.online = true;
-            await user.save();
-            socktIdToUserId.set(socket.id, userId)
-            io.emit('user_online', {userId: user._id, online: true})
-            console.log(userId,"+++user online success++++")
-          }
-        }catch(error){
-          console.log("error updating user status:", error)
+    socket.on('user_online', async ({ userId }) => {
+      try {
+        const user = await UserModel.findById(userId)
+        if (user) {
+          user.online = true;
+          await user.save();
+          socktIdToUserId.set(socket.id, userId)
+          io.emit('user_online', { userId: user._id, online: true })
+          console.log(userId, "+++user online success++++")
         }
+      } catch (error) {
+        console.log("error updating user status:", error)
+      }
     })
 
-    socket.on('disconnect', async() => {
+    socket.on('disconnect', async () => {
       console.log('Socket disconnected');
       const userId = socktIdToUserId.get(socket.id)
-      if(userId){
+      if (userId) {
         try {
           const user = await UserModel.findById(userId)
-          if(user){
+          if (user) {
             user.online = false,
-            user.lastSeen = new Date();
+              user.lastSeen = new Date();
             await user.save();
-            io.emit('user_online', {userId: user._id, online: false, lastSeen: user.lastSeen })
+            io.emit('user_online', { userId: user._id, online: false, lastSeen: user.lastSeen })
             console.log('user disconnected succesfully...!');
           }
         } catch (error) {
-          
+
         }
       }
     })

@@ -2,9 +2,9 @@ const MessageModel = require('../../models/message');
 const ChatModel = require('../../models/chat');
 
 
-
 const sendMessage = async (req, res) => {
-    const { chatId, text,receiverId } = req.body
+    const { chatId, text,receiverId, type } = req.body
+
     try {
         const newMessage = await MessageModel.create({
             text,
@@ -17,11 +17,11 @@ const sendMessage = async (req, res) => {
             new: true
         }).populate({
             path:"users",
-            select:"userName",
-            match: {_id: {$ne: receiverId }}
+            select:"userName"
         })
 
-        console.log("chatUpdatechatUpdate",chatUpdate)
+        console.log(receiverId,"chatUpdatechatUpdate",chatUpdate)
+
         res.send({
             data: newMessage,
             roomData: chatUpdate,

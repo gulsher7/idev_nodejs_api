@@ -23,18 +23,11 @@ const createPost = async (req, res) => {
 }
 
 const fileUpload = async (req, res) => {
-
-    // console.log("req files", req.file)
-
     if (!req?.file) {
         res.status(403).json({ status: false, error: "please upload a file" })
         return;
     }
-
-    // console.log("req?.file", req?.file)
-
     let data = {}
-
     if (!!req?.file) {
         data = {
             url: req.file.location,
