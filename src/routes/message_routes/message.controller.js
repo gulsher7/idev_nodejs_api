@@ -3,7 +3,6 @@ const ChatModel = require('../../models/chat');
 
 const sendMessage = async (req, res) => {
     const { chatId, text,receiverId, type } = req.body
-
     try {
         const newMessage = await MessageModel.create({
             text,
@@ -18,9 +17,6 @@ const sendMessage = async (req, res) => {
             path:"users",
             select:"userName"
         })
-
-        console.log(receiverId,"chatUpdatechatUpdate",chatUpdate)
-
         res.send({
             data: newMessage,
             roomData: chatUpdate,
@@ -35,12 +31,9 @@ const sendMessage = async (req, res) => {
 
 const myMessages = async (req, res) => {
     const chatId = req.query.chatId
-
     const page = parseInt(req.query.pag3) || 1
     const limit = parseInt(req.query.limit) || 10
     const skip = (page - 1) * limit 
-
-
     try {
         const messages = await MessageModel.find({
             chatId: chatId
@@ -56,7 +49,6 @@ const myMessages = async (req, res) => {
         res.status(403).json({ status: false, error: error })
     }
 }
-
 
 
 module.exports = {
