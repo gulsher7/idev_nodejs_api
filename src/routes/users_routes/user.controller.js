@@ -114,7 +114,6 @@ const fetchUserDetails = async (req, res) => {
 
 const fetchUsersByIds = async (req, res) => {
 
-
     const userIds = req.query.userIds.split(','); // Convert the string to an array
     console.log("userIdsuserIds",userIds)
     try {
