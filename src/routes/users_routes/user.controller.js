@@ -99,9 +99,24 @@ const fetchAllUsers = async (req, res) => {
     }
 }
 
+const fetchUserDetails = async (req, res) => {
+    const {userId} = req.query
+    try {
+        let data = await UserModel.findOne({_id: userId}).select('-password')
+        res.send({
+            data: data,
+            status: true
+        })
+    } catch (error) {
+        res.status(403).json({ status: false, error: error })
+    }
+}
+
+
 module.exports = {
     createUser,
     loginUser,
     otpVerify,
-    fetchAllUsers
+    fetchAllUsers,
+    fetchUserDetails
 }

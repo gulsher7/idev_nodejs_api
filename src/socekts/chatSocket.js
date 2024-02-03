@@ -1,10 +1,10 @@
 
-const activeUsers = {}
+const UserModel = require('../models/user');
 
+const socktIdToUserId = new Map();
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
-    console.log('a user connected', socket.handshake.query);
 
     socket.on("join_room", (chatId) => {
       socket.join(chatId)
@@ -38,26 +38,38 @@ module.exports = (io) => {
       io.to(data.userId).emit("new_chat", data.roomData)
     })
 
+    socket.on('user_online', async({userId})=>{
+        try {
+          const user = await UserModel.findById(userId)
+          if(user){
+            user.online = true;
+            await user.save();
+            socktIdToUserId.set(socket.id, userId)
+            io.emit('user_online', {userId: user._id, online: true})
+            console.log(userId,"+++user online success++++")
+          }
+        }catch(error){
+          console.log("error updating user status:", error)
+        }
+    })
 
-    socket.on('app_open', ({ userId }) => {
-      
-      activeUsers[userId] = socket.id
-
-      io.emit('user_online', { userId, isOnline: true, activeUsers });
-    });
-
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async() => {
       console.log('Socket disconnected');
-      if (Object.values(activeUsers).includes(socket.id)) {
-        console.log(`Value ${socket.id} exists in activeUsers.`);
-        console.log('++++user offline++++',socket.id);
-
-        delete activeUsers[socket.id];
-        // io.emit('user_online', { userId, isOnline: false });
-    } else {
-        console.log(`Value ${socket.id} does not exist in activeUsers.`);
-    }
-  
+      const userId = socktIdToUserId.get(socket.id)
+      if(userId){
+        try {
+          const user = await UserModel.findById(userId)
+          if(user){
+            user.online = false,
+            user.lastSeen = new Date();
+            await user.save();
+            io.emit('user_online', {userId: user._id, online: false, lastSeen: user.lastSeen })
+            console.log('user disconnected succesfully...!');
+          }
+        } catch (error) {
+          
+        }
+      }
     })
 
   });
