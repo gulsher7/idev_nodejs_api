@@ -26,7 +26,6 @@ const createPrivateChat = async (req, res) => {
         res.status(403).json({ status: false, error: error })
     }
 }
-
 const createGroupChat = async (req, res) => {
     const { userIds, chatName } = req.body
     let allUsers = userIds
@@ -74,7 +73,6 @@ const myChats = async (req, res) => {
         res.status(403).json({ status: false, error: error })
     }
 }
-
 module.exports = {
     createPrivateChat,
     createGroupChat,
