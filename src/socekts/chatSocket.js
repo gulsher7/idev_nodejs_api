@@ -1,6 +1,5 @@
 
 const UserModel = require('../models/user');
-
 const socktIdToUserId = new Map();
 
 module.exports = (io) => {
