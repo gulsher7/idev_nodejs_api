@@ -35,7 +35,9 @@ const createUser = async (req, res) => {
 }
 
 const loginUser = async (req, res) => {
-    const { email, password } = req.body
+    const { email, password,fcmToken } = req.body
+
+    console.log("req.bodyreq.body",req.body)
 
     try {
         const result = await UserModel.findOne({ email: email })
@@ -43,7 +45,11 @@ const loginUser = async (req, res) => {
             let isPasswordValid = await bcrypt.compare(password, result.password)
             if (!!isPasswordValid) {
                 const token = jwt.sign({ user_id: result?._id, email }, process.env.TOKEN_KEY);
-
+                
+                if(!!fcmToken){
+                    result.fcmToken = fcmToken
+                    result.save()
+                }
                 const deepCopy = JSON.parse(JSON.stringify(result))
                 deepCopy.token = token
                 delete deepCopy.password
