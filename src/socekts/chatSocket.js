@@ -2,6 +2,8 @@
 const UserModel = require('../models/user');
 const socktIdToUserId = new Map();
 
+const {firebase} = require('../firebase/index')
+
 module.exports = (io) => {
   io.on('connection', (socket) => {
 
@@ -37,17 +39,8 @@ module.exports = (io) => {
       console.log("send_message", data.userId)
       io.to(data.chatId).emit("send_message", data)
       io.to(data.userId).emit("new_chat", data.roomData)
+      sendNotification(data)
 
-
-      // if (Array.isArray(data.userId)) {
-      //   data.userId.forEach((userId,inx) => {
-      //     io.to(userId).emit("new_chat", data.roomData);
-      //     console.log(`${userId} emit this time: ${inx}`)
-      //   });
-      // } else {
-      //   // If data.userId is not an array, emit to a single user
-      //   io.to(data.userId).emit("new_chat", data.roomData);
-      // }
     })
 
     socket.on('user_online', async ({ userId }) => {
@@ -85,5 +78,41 @@ module.exports = (io) => {
     })
 
   });
+}
 
+
+const sendNotification = async(notificationData) =>{
+  console.log("notification data received",notificationData)
+
+  try {
+    let findUser = await UserModel.findById(notificationData?.userId)
+
+    console.log("findUserfindUser",findUser)
+    if(!!findUser?.fcmToken){
+
+      let notificationPayload = {
+        roomId: notificationData?.chatId,
+        roomName: findUser.userName,
+        receiverIds: notificationData?.userId,
+        type: notificationData.roomData.type
+    }
+
+      let res = await firebase.messaging().send({
+        token: findUser?.fcmToken,
+        notification: {
+          title:"New Message",
+          body: notificationData.text,
+        },
+        data: {
+          notification_type: "chat",
+          navigationId:'messages',
+          data: JSON.stringify(notificationPayload)
+        }
+      })
+      console.log("notification send successfully...!!!!",res)
+    }
+
+  } catch (error) {
+    console.log("notification failed",error)
+  }
 }
