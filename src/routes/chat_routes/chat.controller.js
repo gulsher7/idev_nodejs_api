@@ -6,7 +6,7 @@ const createPrivateChat = async (req, res) => {
     try {
         const chat = await ChatModel.findOne({
             users: { $all: userIds },
-            type:"private"
+            type: "private"
         })
         if (chat) {
             res.send({
@@ -33,7 +33,7 @@ const createGroupChat = async (req, res) => {
     try {
         const chat = await ChatModel.findOne({
             users: { $all: allUsers },
-            type:"group"
+            type: "group"
         })
         if (chat) {
             res.send({
@@ -63,8 +63,8 @@ const myChats = async (req, res) => {
             users: req.user.user_id
         }).populate({
             path: "users",
-            select:"userName email online lastSeen"
-        }).sort({updatedAt: -1})
+            select: "userName email online lastSeen"
+        }).sort({ updatedAt: -1 })
         res.send({
             data: chats,
             status: true,
@@ -73,8 +73,27 @@ const myChats = async (req, res) => {
         res.status(403).json({ status: false, error: error })
     }
 }
+
+const chatById = async (req, res) => {
+    const chatId = req.query.chatId
+    console.log("chatIdchatId",chatId)
+    try {
+        const chats = await ChatModel.findById(chatId).populate({
+            path: "users",
+            select: "userName email online lastSeen"
+        })
+        res.send({
+            data: chats,
+            status: true,
+        })
+    } catch (error) {
+        res.status(403).json({ status: false, error: error })
+    }
+}
+
 module.exports = {
     createPrivateChat,
     createGroupChat,
-    myChats
+    myChats,
+    chatById
 }
